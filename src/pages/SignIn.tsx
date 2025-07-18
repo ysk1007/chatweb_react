@@ -1,14 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@radix-ui/react-label'
-import { Link } from 'react-router-dom'
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom'
 
 const SignIn = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [userId, setUserId] = useState('')
   const [userPassword, setUserPassword] = useState('')
+
+  useEffect(() => {
+    document.title = '로그인 - ChatBot'
+  }, [])
 
   const handleLogin = async () => {
     try {
@@ -17,19 +20,14 @@ const SignIn = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // 이거 붙여야 계속 세션,쿠키 유지
-        body: JSON.stringify({
-          userId : userId,
-          userPassword : userPassword
-        }),
+        credentials: 'include',
+        body: JSON.stringify({ userId, userPassword }),
       })
 
       if (response.ok) {
-        // 로그인 성공 처리
         navigate('/Dashboard')
       } else {
-        // 로그인 실패 처리
-        alert('로그인 실패')
+        alert('❌ 아이디 또는 비밀번호가 잘못되었습니다.')
       }
     } catch (error) {
       console.error('로그인 오류:', error)
@@ -37,33 +35,47 @@ const SignIn = () => {
   }
 
   return (
-    <div>
-      <h1>회원 로그인</h1>
-      <div className="grid w-full max-w-sm items-center gap-3">
-        <Label htmlFor="id">아이디</Label>
-        <Input
-          type="text"
-          id="id"
-          placeholder="아이디를 입력하세요"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-        />
-      </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6">
+        <h1 className="text-2xl font-bold text-center">🔐 로그인</h1>
 
-      <div className="grid w-full max-w-sm items-center gap-3">
-        <Label htmlFor="password">비밀번호</Label>
-        <Input
-          type="password"
-          id="password"
-          placeholder="비밀번호를 입력하세요"
-          value={userPassword}
-          onChange={(e) => setUserPassword(e.target.value)}
-        />
-      </div>
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="id" className="text-sm font-medium text-gray-700">아이디</Label>
+            <Input
+              id="id"
+              type="text"
+              placeholder="아이디를 입력하세요"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              required
+            />
+          </div>
 
-      <Button onClick={handleLogin}>로그인</Button>
-      <br />
-      아직 계정이 없으신가요? <Link to="/SignUp">회원 가입</Link>
+          <div className="grid gap-1.5">
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">비밀번호</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={userPassword}
+              onChange={(e) => setUserPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <Button className="w-full mt-2" onClick={handleLogin}>
+            로그인
+          </Button>
+        </div>
+
+        <div className="text-center text-sm text-gray-600">
+          아직 계정이 없으신가요?{' '}
+          <Link to="/SignUp" className="text-blue-500 hover:underline">
+            회원가입
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
