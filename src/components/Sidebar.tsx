@@ -25,6 +25,7 @@ const Sidebar = () => {
       <nav className="flex flex-col gap-2">
         <Link to="/Dashboard">대시보드</Link>
         <Link to="/ChatBot">챗봇과 대화하기</Link>
+        <Link to="/Hashtag">#해시태그</Link>
         <Button onClick={logout}>로그아웃</Button>
       </nav>
     </aside>

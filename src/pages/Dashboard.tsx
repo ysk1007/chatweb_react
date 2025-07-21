@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
+import { format } from 'date-fns'
 import {
   Table,
   TableBody,
@@ -8,6 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog"
 
 const Dashboard = () => {
   const [user, setUser] = useState(null)
@@ -23,6 +37,13 @@ const Dashboard = () => {
   const [CH_pageNumber, setChPageNumber] = useState(1)
   const [CH_totalPages, setChTotalPages] = useState(0)
   const [CH_nav, setChNav] = useState([])
+
+  // 해시태그 입력폼
+  const [tagText, setTagText] = useState('')
+  const [chatNo, setChatNo] = useState('')
+
+  // 선택된 채팅내역 리스트
+  const [selectedChats, setSelectedChats] = useState<number[]>([]);
 
   // 유저 정보
   useEffect(() => {
@@ -79,6 +100,47 @@ const Dashboard = () => {
       })
   }, [user, CH_pageNumber])
 
+  // 체크박스 선택했을때 선택 배열 업데이트
+  const toggleSelectChat = (chatNo: number) => {
+    console.log("Checkbox clicked for chatNo:", chatNo);
+    setSelectedChats(prev =>
+      prev.includes(chatNo)
+        ? prev.filter(no => no !== chatNo)
+        : [...prev, chatNo]
+    );
+  };
+
+  // 대화 저장 삭제
+  const deleteSelectedChats = () => {
+  if (selectedChats.length === 0) {
+    alert("삭제할 항목을 선택하세요.");
+    return;
+  }
+
+  fetch(`http://localhost/deleteChatHistories`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(selectedChats),
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("삭제 실패");
+    return res.text();
+  })
+  .then(() => {
+    alert("삭제 완료");
+    // 삭제 후 화면에서 리스트 갱신
+    setChatHistoryList(prevList =>
+      prevList.filter(item => !selectedChats.includes(item.chatNo))
+    );
+    setSelectedChats([]);  // 선택 초기화
+  })
+  .catch(console.error);
+};
+
+  // 머문 시간 계산 (로그아웃 시점 - 로그인 시점)
   function calculateSessionDuration(loginAt, logoutAt) {
     if (!loginAt || !logoutAt) return '-'
 
@@ -93,6 +155,39 @@ const Dashboard = () => {
     const hours = Math.floor(diffMs / (1000 * 60 * 60))
 
     return `${hours}시간 ${minutes}분 ${seconds}초`
+  }
+
+  // 즐겨찾기 설정 변경
+  const updateBookmark = (chatNo: number) => {
+    fetch(`http://localhost/updateBookmark/${chatNo}`, {
+      method: 'PATCH',
+      credentials: 'include',
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('서버 응답 에러');
+      return res.text();
+    })
+    .then(text => {
+    window.location.reload()})
+  };
+
+  // 해시 태그 추가
+  function addHashtag(){
+      fetch(`http://localhost/addHashtag/${chatNo}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                chatHistory : {chatNo : chatNo},
+                tagText : tagText,
+              }),
+            }).then()
+              .then(()=>{
+                window.location.reload();
+              }
+            );
   }
 
   return (
@@ -126,8 +221,8 @@ const Dashboard = () => {
               {loginHistoryList && loginHistoryList.length > 0 ? (
                 loginHistoryList.map((l) => (
                   <TableRow key={l.historyNo}>
-                    <TableCell>{l.loginAt}</TableCell>
-                    <TableCell>{l.logoutAt}</TableCell>
+                    <TableCell>{format(new Date(l.loginAt),'yyyy-MM-dd HH:mm')}</TableCell>
+                    <TableCell>{l.logoutAt == null ? '' : format(new Date(l.logoutAt),'yyyy-MM-dd HH:mm')}</TableCell>
                     <TableCell className="text-right">
                       {calculateSessionDuration(l.loginAt, l.logoutAt)}
                     </TableCell>
@@ -172,27 +267,78 @@ const Dashboard = () => {
 
         {/* 대화 내용 테이블 */}
         <div className="bg-white shadow-md rounded-xl p-4">
-          <Table>
+          <Table className="table-auto min-w-[900px]">
             <TableHeader>
               <TableRow>
-                <TableHead>날짜/시간</TableHead>
-                <TableHead>세션 ID</TableHead>
-                <TableHead>사용자 질문</TableHead>
-                <TableHead>AI 응답</TableHead>
-                <TableHead>즐겨찾기</TableHead>
-                <TableHead>#</TableHead>
+                <TableHead></TableHead>
+                <TableHead className="w-32">날짜/시간</TableHead>
+                <TableHead className="w-32">세션 ID</TableHead>
+                <TableHead className="w-[250px]">사용자 질문</TableHead>
+                <TableHead className="w-[250px]">AI 응답</TableHead>
+                <TableHead className="w-20">즐겨찾기</TableHead>
+                <TableHead className="w-40">#</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {chatHistoryList && chatHistoryList.length > 0 ? (
                 chatHistoryList.map((c) => (
                   <TableRow key={c.chatNo}>
-                    <TableCell>{c.createAt}</TableCell>
+                    <TableCell>
+                        <Checkbox 
+                          id={c.chatNo.toString()} 
+                          checked={selectedChats.includes(c.chatNo)} 
+                          onClick={() => toggleSelectChat(c.chatNo)} 
+                        />
+                    </TableCell>
+                    <TableCell>{format(new Date(c.createAt),'yyyy-MM-dd HH:mm')}</TableCell>
                     <TableCell>{c.sessionId}</TableCell>
                     <TableCell>{c.userMsg}</TableCell>
                     <TableCell>{c.aiReply}</TableCell>
-                    <TableCell>{c.bookmark}</TableCell>
-                    <TableCell><Button>해시태그 추가</Button></TableCell>
+                    <TableCell>
+                      {c.bookmark === 1 ? (
+                        <Switch
+                          id={c.chatNo}
+                          checked
+                          onClick={() => updateBookmark(c.chatNo)}
+                        />
+                      ) : (
+                        <Switch
+                          id={c.chatNo}
+                          onClick={() => updateBookmark(c.chatNo)}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>{c.tagText}
+                      <Dialog>
+                        <form>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" onClick={() => setChatNo(c.chatNo)}>
+                              # 해시태그 추가
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>해시태그 추가</DialogTitle>
+                              <DialogDescription>
+                                해시태그 목록 : {tagText}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4">
+                              <div className="grid gap-3">
+                                <Input id="chatNo" name="chatNo" value={c.chatNo} hidden/>
+                                <Input id="tagText" name="tagText" placeholder='#태그를 입력 해주세요 (쉼표로 여러개 구분)' onChange={(e) => {setTagText(e.target.value.replace(/[^a-zA-Z0-9가-힣,]/g,'')); }}/>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">취소</Button>
+                              </DialogClose>
+                              <Button onClick={addHashtag}>저장</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                          </form>
+                        </Dialog>
+                      </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -204,6 +350,10 @@ const Dashboard = () => {
               )}
             </TableBody>
           </Table>
+
+          <Button variant="destructive" onClick={deleteSelectedChats} className="mb-4">
+            선택 삭제
+          </Button>
         </div>
 
         {/* 페이지 네비게이션 */}

@@ -5,6 +5,7 @@ import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
 import MainLayout from './layouts/MainLayout'
 import ChatBot from './pages/ChatBot'
+import Hashtag from './pages/Hashtag'
 
 function App() {
   // 페이지 제목 설정
@@ -24,6 +25,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/ChatBot" element={<ChatBot />} />
+          <Route path="/Hashtag" element={<Hashtag />} />
           {/* 필요한 다른 페이지도 여기에 추가 */}
         </Route>
 

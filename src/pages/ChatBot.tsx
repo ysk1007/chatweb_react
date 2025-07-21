@@ -18,6 +18,7 @@ const ChatBot = () => {
       .then(data => setUser(data));
   }, []);
 
+  // 현재까지 대화(세션에 있는) 내용 가져오기
   useEffect(() => {
     fetch('http://localhost/getChatHistory', {
       credentials: 'include',
@@ -102,7 +103,7 @@ const ChatBot = () => {
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
         {[...chatHistory.map(msg => ({
           from: msg.messageType === 'USER' ? 'user' : 'ai',
-          text: msg.content
+          text: msg.text
         })), ...messages].map((msg, idx) => (
           <div key={idx} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
