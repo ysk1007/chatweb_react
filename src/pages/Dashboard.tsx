@@ -38,6 +38,9 @@ const Dashboard = () => {
   const [CH_totalPages, setChTotalPages] = useState(0)
   const [CH_nav, setChNav] = useState([])
 
+  // 즐겨찾기 조회 토글
+  const [onlyBookmark, setOnlyBookmark] = useState(false)
+
   // 해시태그 입력폼
   const [tagText, setTagText] = useState('')
   const [chatNo, setChatNo] = useState('')
@@ -75,30 +78,30 @@ const Dashboard = () => {
 
         setLhNav(arr)
       })
-  }, [user, LH_pageNumber])
+  }, [user, LH_pageNumber, onlyBookmark])
 
   // 대화 저장 이력
   useEffect(() => {
-    if (!user) return;
+  if (!user) return;
 
-    fetch(`http://localhost/userChatHistory/${user.userNo}/${CH_pageNumber}`)
-      .then(res => res.json())
-      .then(data => {
-        setChatHistoryList(data.content)
-        setChTotalPages(data.totalPages)
+  fetch(`http://localhost/userChatHistory/${user.userNo}/${CH_pageNumber}?onlyBookmark=${onlyBookmark ? 'true' : 'false'}`)
+    .then(res => res.json())
+    .then(data => {
+      setChatHistoryList(data.content)
+      setChTotalPages(data.totalPages)
 
-        const navSize = 10
-        const startNav = Math.floor((CH_pageNumber - 1) / navSize) * navSize + 1
-        const arr = []
+      const navSize = 10
+      const startNav = Math.floor((CH_pageNumber - 1) / navSize) * navSize + 1
+      const arr = []
 
-        for (let i = startNav; i < startNav + navSize; i++) {
-          if (i > data.totalPages) break
-          arr.push(i)
-        }
+      for (let i = startNav; i < startNav + navSize; i++) {
+        if (i > data.totalPages) break
+        arr.push(i)
+      }
 
-        setChNav(arr)
-      })
-  }, [user, CH_pageNumber])
+      setChNav(arr)
+    })
+}, [user, CH_pageNumber, onlyBookmark]) // ← 여기 onlyBookmark 추가됨
 
   // 체크박스 선택했을때 선택 배열 업데이트
   const toggleSelectChat = (chatNo: number) => {
@@ -191,49 +194,44 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background px-6 py-10 text-foreground">
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* 로그인 이력 헤더 */}
-        <section className="space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight">📊 내 로그인 이력</h1>
+<div className="min-h-screen bg-gray-50 text-gray-900 px-6 py-10">
+      <div className="max-w-7xl mx-auto space-y-12">
+        
+        {/* 로그인 이력 섹션 */}
+        <section className="bg-white rounded-xl shadow-md p-6">
+          <h1 className="text-3xl font-bold tracking-tight mb-6">📊 내 로그인 이력</h1>
 
-          {/* 유저 정보 박스 */}
           {user ? (
-            <div className="bg-muted text-muted-foreground dark:bg-muted/40 rounded-xl p-4 shadow">
+            <div className="bg-gray-100 rounded-lg p-4 mb-6 shadow-inner">
               <p className="text-lg font-medium">👤 이름: {user.userName}</p>
             </div>
           ) : (
-            <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-xl p-4 shadow">
+            <div className="bg-red-100 text-red-700 rounded-lg p-4 mb-6 shadow-inner">
               로그인이 필요합니다.
             </div>
           )}
 
-          {/* 로그인 이력 테이블 */}
-          <div className="rounded-xl border shadow bg-card">
-            <Table>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
+            <Table className="min-w-full">
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-gray-100">
                   <TableHead>로그인 시간</TableHead>
                   <TableHead>로그아웃 시간</TableHead>
                   <TableHead className="text-right">머문 시간</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loginHistoryList && loginHistoryList.length > 0 ? (
+                {loginHistoryList.length > 0 ? (
                   loginHistoryList.map((l) => (
-                    <TableRow key={l.historyNo}>
+                    <TableRow key={l.historyNo} className="even:bg-gray-50">
                       <TableCell>{format(new Date(l.loginAt), 'yyyy-MM-dd HH:mm')}</TableCell>
-                      <TableCell>
-                        {l.logoutAt ? format(new Date(l.logoutAt), 'yyyy-MM-dd HH:mm') : ''}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {calculateSessionDuration(l.loginAt, l.logoutAt)}
-                      </TableCell>
+                      <TableCell>{l.logoutAt ? format(new Date(l.logoutAt), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
+                      <TableCell className="text-right">{calculateSessionDuration(l.loginAt, l.logoutAt)}</TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={3} className="text-center py-6 text-gray-500">
                       로그인 이력이 없습니다.
                     </TableCell>
                   </TableRow>
@@ -243,13 +241,13 @@ const Dashboard = () => {
           </div>
 
           {/* 페이지네이션 */}
-          <div className="flex flex-wrap justify-center items-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             {LH_nav[0] > 1 && (
               <Button variant="outline" onClick={() => setLhPageNumber(LH_nav[0] - 1)}>
                 ◀ 이전
               </Button>
             )}
-            {LH_nav.map((i) => (
+            {LH_nav.map(i => (
               <Button
                 key={i}
                 onClick={() => setLhPageNumber(i)}
@@ -259,24 +257,21 @@ const Dashboard = () => {
               </Button>
             ))}
             {LH_nav[LH_nav.length - 1] < LH_totalPages && (
-              <Button
-                variant="outline"
-                onClick={() => setLhPageNumber(LH_nav[LH_nav.length - 1] + 1)}
-              >
+              <Button variant="outline" onClick={() => setLhPageNumber(LH_nav[LH_nav.length - 1] + 1)}>
                 다음 ▶
               </Button>
             )}
           </div>
         </section>
 
-        {/* 대화 기록 */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold tracking-tight">💬 저장한 대화</h2>
+        {/* 대화 기록 섹션 */}
+        <section className="bg-white rounded-xl shadow-md p-6">
+          <h2 className="text-2xl font-semibold tracking-tight mb-6">💬 저장한 대화</h2>
 
-          <div className="overflow-x-auto rounded-xl border shadow bg-card">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
             <Table className="min-w-[960px]">
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-gray-100">
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="w-36">날짜/시간</TableHead>
                   <TableHead className="w-40 break-words whitespace-normal">세션 ID</TableHead>
@@ -287,9 +282,9 @@ const Dashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {chatHistoryList && chatHistoryList.length > 0 ? (
+                {chatHistoryList.length > 0 ? (
                   chatHistoryList.map((c) => (
-                    <TableRow key={c.chatNo}>
+                    <TableRow key={c.chatNo} className="even:bg-gray-50">
                       <TableCell className="w-8">
                         <Checkbox
                           id={c.chatNo.toString()}
@@ -308,15 +303,12 @@ const Dashboard = () => {
                           onClick={() => updateBookmark(c.chatNo)}
                         />
                       </TableCell>
-                      <TableCell className="w-24 break-words whitespace-normal">
-                        {c.tagText}
-                        {/* 이하 Dialog 코드 생략 */}
-                      </TableCell>
+                      <TableCell className="w-24 break-words whitespace-normal">{c.tagText}</TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-6 text-gray-500">
                       아직 저장한 대화가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -325,17 +317,29 @@ const Dashboard = () => {
             </Table>
           </div>
 
-          <div className="flex justify-between items-center mt-4 flex-wrap gap-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Switch
+                id="bookmarkFilter"
+                checked={onlyBookmark}
+                onClick={() => setOnlyBookmark(!onlyBookmark)}
+              />
+            <label htmlFor="bookmarkFilter" className="text-sm text-gray-700">
+              즐겨찾기만 보기
+            </label>
+          </div>
+
+          <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
             <Button variant="destructive" onClick={deleteSelectedChats}>
               선택 삭제
             </Button>
-            <div className="flex gap-2 flex-wrap justify-center">
+
+            <div className="flex flex-wrap justify-center gap-2">
               {CH_nav[0] > 1 && (
                 <Button variant="outline" onClick={() => setChPageNumber(CH_nav[0] - 1)}>
                   ◀ 이전
                 </Button>
               )}
-              {CH_nav.map((i) => (
+              {CH_nav.map(i => (
                 <Button
                   key={i}
                   onClick={() => setChPageNumber(i)}
@@ -345,10 +349,7 @@ const Dashboard = () => {
                 </Button>
               ))}
               {CH_nav[CH_nav.length - 1] < CH_totalPages && (
-                <Button
-                  variant="outline"
-                  onClick={() => setChPageNumber(CH_nav[CH_nav.length - 1] + 1)}
-                >
+                <Button variant="outline" onClick={() => setChPageNumber(CH_nav[CH_nav.length - 1] + 1)}>
                   다음 ▶
                 </Button>
               )}

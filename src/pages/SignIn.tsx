@@ -10,10 +10,6 @@ const SignIn = () => {
   const [userId, setUserId] = useState('')
   const [userPassword, setUserPassword] = useState('')
 
-  useEffect(() => {
-    document.title = '로그인 - ChatBot'
-  }, [])
-
   const handleLogin = async () => {
     try {
       const response = await fetch('http://localhost/signIn', {
@@ -39,7 +35,7 @@ const SignIn = () => {
     <div className="flex justify-center items-center min-h-screen bg-background px-4">
       <Card className="w-full max-w-md p-8 shadow-xl space-y-6">
         <CardHeader className="text-center text-2xl font-bold">
-          🔐 로그인
+          ChatWeb 로그인
         </CardHeader>
 
         <CardContent className="space-y-4">

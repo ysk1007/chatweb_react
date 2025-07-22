@@ -1,33 +1,33 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
 
 const ChatBot = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [chatHistory, setChatHistory] = useState<{ content: string; messageType: 'USER' | 'ASSISTANT' }[]>([])
   const [messages, setMessages] = useState<{ from: 'user' | 'ai'; text: string }[]>([])
   const [input, setInput] = useState('')
+  const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('http://localhost/api/userInfo', {
-      credentials: 'include'
-    })
+    fetch('http://localhost/api/userInfo', { credentials: 'include' })
       .then(res => res.json())
-      .then(data => setUser(data));
-  }, []);
+      .then(data => setUser(data))
+  }, [])
 
-  // 현재까지 대화(세션에 있는) 내용 가져오기
   useEffect(() => {
-    fetch('http://localhost/getChatHistory', {
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setChatHistory(data.filter(msg => msg.messageType !== 'SYSTEM')) // SYSTEM 제외
-      });
-  }, []);
+    fetch('http://localhost/getChatHistory', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setChatHistory(data.filter(msg => msg.messageType !== 'SYSTEM'))
+      })
+  }, [])
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, chatHistory])
 
   function chat() {
     const userMessage = input.trim()
@@ -52,35 +52,25 @@ const ChatBot = () => {
   }
 
   function chatHistorySave() {
-    if (!confirm("현재까지 대화 내용을 저장할까요?")) return;
+    if (!confirm("현재까지 대화 내용을 저장할까요?")) return
     fetch('http://localhost/chatHistorySave', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
     })
       .then(res => res.text())
-      .then(text => {
-        alert(text);
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error('AI 응답 오류:', err)
-      })
+      .then(alert)
+      .then(() => window.location.reload())
   }
 
   function chatHistoryReset() {
-    if (!confirm("현재 ChatBot과 대화한 내용을 리셋할까요?")) return;
+    if (!confirm("현재 ChatBot과 대화한 내용을 리셋할까요?")) return
     fetch('http://localhost/chatHistoryReset', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
     })
       .then(res => res.text())
-      .then(text => {
-        alert(text);
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error('AI 응답 오류:', err)
-      })
+      .then(alert)
+      .then(() => window.location.reload())
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,23 +81,23 @@ const ChatBot = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* 상단 바 */}
-      <div className="bg-white p-4 shadow-md flex justify-between items-center">
-        <div className="text-lg font-semibold">👤 {user?.userName || "익명"}님</div>
+      <div className="bg-white px-6 py-4 shadow-md flex justify-between items-center border-b">
+        <div className="text-lg font-bold text-gray-800">👤 {user?.userName || "익명"}님</div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={chatHistorySave}>💾 저장</Button>
           <Button variant="destructive" onClick={chatHistoryReset}>🗑️ 리셋</Button>
         </div>
       </div>
 
-      {/* 채팅 내역 영역 */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+      {/* 채팅 내역 */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-gray-50">
         {[...chatHistory.map(msg => ({
           from: msg.messageType === 'USER' ? 'user' : 'ai',
           text: msg.text
         })), ...messages].map((msg, idx) => (
           <div key={idx} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-sm p-3 rounded-2xl text-sm shadow ${
+              className={`max-w-xs md:max-w-md p-3 text-sm rounded-2xl shadow-md whitespace-pre-wrap ${
                 msg.from === 'user'
                   ? 'bg-blue-500 text-white rounded-br-none'
                   : 'bg-white text-gray-800 border rounded-bl-none'
@@ -117,22 +107,23 @@ const ChatBot = () => {
             </div>
           </div>
         ))}
+        <div ref={chatEndRef} />
       </div>
 
       {/* 하단 입력창 */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-4 flex gap-2 border-t shadow"
+        className="bg-white p-4 border-t shadow flex gap-2"
       >
         <Input
           type="text"
           placeholder="메시지를 입력하세요..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 px-4 py-2"
+          className="flex-1"
           required
         />
-        <Button type="submit">전송</Button>
+        <Button type="submit" className="min-w-[80px]">전송</Button>
       </form>
     </div>
   )
