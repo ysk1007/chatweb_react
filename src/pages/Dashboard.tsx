@@ -279,6 +279,7 @@ const Dashboard = () => {
                   <TableHead className="max-w-[200px] break-words whitespace-normal">AI 응답</TableHead>
                   <TableHead className="w-20">즐겨찾기</TableHead>
                   <TableHead className="w-24 break-words whitespace-normal">#</TableHead>
+                  <TableHead className="w-20">해시태그 추가</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,6 +305,38 @@ const Dashboard = () => {
                         />
                       </TableCell>
                       <TableCell className="w-24 break-words whitespace-normal">{c.tagText}</TableCell>
+                      <TableCell>
+                      <Dialog>
+                        <form>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" onClick={() => setChatNo(c.chatNo)}>
+                              # 해시태그 추가
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>해시태그 추가</DialogTitle>
+                              <DialogDescription>
+                                해시태그 목록 : {tagText}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4">
+                              <div className="grid gap-3">
+                                <Input id="chatNo" name="chatNo" value={c.chatNo} hidden/>
+                                <Input id="tagText" name="tagText" placeholder='#태그를 입력 해주세요 (쉼표로 여러개 구분)' onChange={(e) => {setTagText(e.target.value.replace(/[^a-zA-Z0-9가-힣,]/g,'')); }}/>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">취소</Button>
+                              </DialogClose>
+                              <Button onClick={addHashtag}>저장</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                          </form>
+                        </Dialog>
+                      </TableCell>
+                      
                     </TableRow>
                   ))
                 ) : (
