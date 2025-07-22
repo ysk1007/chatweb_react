@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from "react-router-dom";
+import { ModeToggle } from './mode-toggle';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -20,9 +21,10 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="w-64 h-screen bg-gray-800 text-white p-4">
+    <aside className="w-64 h-auto bg-gray-800 text-white p-4">
       <h2 className="text-xl mb-4">메뉴</h2>
       <nav className="flex flex-col gap-2">
+        <ModeToggle></ModeToggle>
         <Link to="/Dashboard">대시보드</Link>
         <Link to="/ChatBot">챗봇과 대화하기</Link>
         <Link to="/Hashtag">#해시태그</Link>

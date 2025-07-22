@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@radix-ui/react-label'
 import { Link, useNavigate } from 'react-router-dom'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 
 const SignIn = () => {
   const navigate = useNavigate()
@@ -35,13 +36,15 @@ const SignIn = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-center">🔐 로그인</h1>
+    <div className="flex justify-center items-center min-h-screen bg-background px-4">
+      <Card className="w-full max-w-md p-8 shadow-xl space-y-6">
+        <CardHeader className="text-center text-2xl font-bold">
+          🔐 로그인
+        </CardHeader>
 
-        <div className="grid gap-4">
-          <div className="grid gap-1.5">
-            <Label htmlFor="id" className="text-sm font-medium text-gray-700">아이디</Label>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="id">아이디</Label>
             <Input
               id="id"
               type="text"
@@ -52,8 +55,8 @@ const SignIn = () => {
             />
           </div>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">비밀번호</Label>
+          <div className="grid gap-2">
+            <Label htmlFor="password">비밀번호</Label>
             <Input
               id="password"
               type="password"
@@ -67,15 +70,15 @@ const SignIn = () => {
           <Button className="w-full mt-2" onClick={handleLogin}>
             로그인
           </Button>
-        </div>
+        </CardContent>
 
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm text-muted-foreground">
           아직 계정이 없으신가요?{' '}
-          <Link to="/SignUp" className="text-blue-500 hover:underline">
+          <Link to="/SignUp" className="text-primary hover:underline">
             회원가입
           </Link>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

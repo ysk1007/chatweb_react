@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import MainLayout from './layouts/MainLayout'
 import ChatBot from './pages/ChatBot'
 import Hashtag from './pages/Hashtag'
+import { ThemeProvider } from "@/components/theme-provider"
 
 function App() {
   // 페이지 제목 설정
@@ -14,23 +15,25 @@ function App() {
   }, [])
 
   return (
-    <BrowserRouter>
-      <Routes>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <BrowserRouter>
+        <Routes>
 
-        {/* 사이드바 없는 페이지 */}
-        <Route path="/" element={<SignIn />} />
-        <Route path="/SignUp" element={<SignUp />} />
+          {/* 사이드바 없는 페이지 */}
+          <Route path="/" element={<SignIn />} />
+          <Route path="/SignUp" element={<SignUp />} />
 
-        {/* 사이드바 포함 페이지 */}
-        <Route element={<MainLayout />}>
-          <Route path="/Dashboard" element={<Dashboard />} />
-          <Route path="/ChatBot" element={<ChatBot />} />
-          <Route path="/Hashtag" element={<Hashtag />} />
-          {/* 필요한 다른 페이지도 여기에 추가 */}
-        </Route>
+          {/* 사이드바 포함 페이지 */}
+          <Route element={<MainLayout />}>
+            <Route path="/Dashboard" element={<Dashboard />} />
+            <Route path="/ChatBot" element={<ChatBot />} />
+            <Route path="/Hashtag" element={<Hashtag />} />
+            {/* 필요한 다른 페이지도 여기에 추가 */}
+          </Route>
 
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 
